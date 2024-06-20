@@ -6,8 +6,12 @@ from datetime import datetime
 startTime = datetime.now()
 
 # Load the pre-trained model
-pklfile = "ml_models/heart_attack.pkl"
-model = pickle.load(open(pklfile, 'rb'))
+try:
+    with open("ml_models/heart_attack.pkl", "rb") as file:
+        model  = pickle.load(file)
+        st.write("Załadowano model heart_attack.pkl")
+except Exception as e:
+    st.write(f"Błąd podczas wczytywania modelu heart_attack.pkl: {e}")
 
 sex_d = {0: "Kobieta", 1: "Mężczyzna"}
 exng_s = {0: "Nie", 1: "Tak"}
