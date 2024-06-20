@@ -10,6 +10,8 @@ pklfile = "ml_models/heart_attack.pkl"
 model = pickle.load(open(pklfile, 'rb'))
 
 sex_d = {0: "Kobieta", 1: "Mężczyzna"}
+exng_s = {0: "Nie", 1: "Tak"}
+fbs_s = {0:"Cukier poniżej 120ng/ml", 1:"Cukier powyżej 120ng/ml"}
 
 def main():
     st.set_page_config(page_title="Heart Attack")
@@ -30,7 +32,7 @@ def main():
     caa = st.slider("major_vsssels", value=2, min_value=0, max_value=3) #major_vsssels
     
     st.header("Czy występuje u ciebie angina wysiłkowa?")
-    exng = st.slider("exercise_induced_angina", value=0, min_value=0, max_value=1)#Do zmiany na kulki exercise_induced_angina
+    exng = st.radio("Exercise_induced_angina", list(exng_s.keys()), format_func=lambda x: exng_s[x])# exercise_induced_angina
     
     st.header("Podaj cisnienie krwi podczas spoczynku")
     trtbps = st.slider("resting_blood_pressure", value=0, min_value=0, max_value=150)#Do zmiany na wpisywane - resting_blood_pressure
@@ -39,7 +41,7 @@ def main():
     chol = st.slider("cholestoral in mg/dl fetched via BMI sensor", value=0, min_value=0, max_value=150)#Do zmiany na wpisywane  cholestoral in mg/dl fetched via BMI sensor
     
     st.header("Poziom cukru we krwi na czczo")
-    fbs = st.slider("fasting_blood_sugar", value=0, min_value=0, max_value=1)#Do zmiany na kulki fasting_blood_sugar
+    fbs = st.radio("Exercise_induced_angina", list(fbs_s.keys()), format_func=lambda x: fbs_s[x])#Do zmiany na kulki fasting_blood_sugar
     
     st.header("Wyniki spoczynkowego elektrokardiogramu (EKG)")
     st.text("0: normalny")
