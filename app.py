@@ -18,7 +18,6 @@ exng_s = {0: "Nie", 1: "Tak"}
 fbs_s = {0:"Cukier poniżej 120ng/ml", 1:"Cukier powyżej 120ng/ml"}
 
 def main():
-    st.set_page_config(page_title="Heart Attack")
     st.image("necessary_files/Image/108028555.webp")
     prediction = st.container()
 
