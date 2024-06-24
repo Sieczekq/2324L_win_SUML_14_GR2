@@ -1,6 +1,7 @@
 import streamlit as st
 import pickle
 from datetime import datetime
+import streamlit.components.v1 as components
 
 # Initialize start time
 startTime = datetime.now()
@@ -248,7 +249,7 @@ def main():
                     s_confidence = model.predict_proba(data)
                     st.subheader("Wyniki przewidywania")
                     if survival[0] == 0:
-                        st.components.v1.html(negative_animation, height=150)
+                        components.html(negative_animation, height=150)
                         st.markdown(
                             f"<div style='background-color: #990033; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
                             f"⚠️ Zwiększone ryzyko zawału serca! Pewność predykcji: {s_confidence[0][0] * 100:.2f} %"
@@ -257,7 +258,7 @@ def main():
                         )
                         st.warning("Prosimy o pilny kontakt z lekarzem.")
                     else:
-                        st.components.v1.html(positive_animation, height=150)
+                        components.html(positive_animation, height=150)
                         st.markdown(
                             f"<div style='background-color: #006633; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
                             f"✅ Brak zwiększonego ryzyka zawału serca. Pewność predykcji: {s_confidence[0][1] * 100:.2f} %"
