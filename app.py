@@ -1,8 +1,13 @@
-import streamlit as st
+"""
+This Streamlit app predicts the risk of a heart attack based on user input.
+It uses a pre-trained machine learning model to provide the predictions.
+"""
 import pickle
 from datetime import datetime
+
+import streamlit as st
 import streamlit.components.v1 as components
-#check
+
 # Initialize start time
 startTime = datetime.now()
 
@@ -11,14 +16,14 @@ try:
     with open("ml_models/heart_attack.pkl", "rb") as file:
         model = pickle.load(file)
         st.success("Załadowano model heart_attack.pkl")
-except Exception as e:
-    st.error(f"Błąd podczas wczytywania modelu heart_attack.pkl: {e}")
+except Exception as load_exception:
+    st.error(f"Błąd podczas wczytywania modelu heart_attack.pkl: {load_exception}")
 
 sex_d = {0: "Kobieta", 1: "Mężczyzna"}
 exng_s = {0: "Nie", 1: "Tak"}
 fbs_s = {0: "Cukier poniżej 120ng/ml", 1: "Cukier powyżej 120ng/ml"}
 
-positive_animation = """
+POSITIVE_ANIMATION = """
 <div style="display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
   <div style="animation: moveUp 2s; width: 120px; height: 120px; border: 5px solid #006633; border-radius: 50%; position: absolute; top: 0; background-color: #E0FFE0;">
     <svg width="100" height="100" viewBox="0 0 24 24" fill="#006633" xmlns="http://www.w3.org/2000/svg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -35,7 +40,7 @@ positive_animation = """
 </style>
 """
 
-negative_animation = """
+NEGATIVE_ANIMATION = """
 <div style="display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
   <div style="animation: moveUp 2s; width: 120px; height: 120px; border: 5px solid #990033; border-radius: 50%; position: absolute; top: 0; background-color: #FFE0E0;">
     <svg width="100" height="100" viewBox="0 0 24 24" fill="#990033" xmlns="http://www.w3.org/2000/svg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -53,9 +58,69 @@ negative_animation = """
 """
 
 
-def main():
-    st.image("necessary_files/Image/heartattac.jpg")
+def validate_inputs(trtbps, chol, thalachh, oldpeak):
+    """Validates the input values for prediction."""
+    errors = []
+    if not 0 <= trtbps <= 300:
+        errors.append(
+            "! Ciśnienie krwi podczas spoczynku musi być w zakresie od 0 do 300 mm Hg."
+        )
+    if not 0 <= chol <= 600:
+        errors.append("! Cholesterol musi być w zakresie od 0 do 600 mg/dl.")
+    if not 0 <= thalachh <= 250:
+        errors.append("! Maksymalne tętno musi być w zakresie od 0 do 250.")
+    if not 0.0 <= oldpeak <= 10.0:
+        errors.append(
+            "! Depresja ST wywołana przez ćwiczenie w stosunku do odpoczynku musi być w zakresie od 0.0 do 10.0."
+        )
+    return errors
 
+
+def display_errors(errors):
+    """Displays validation errors."""
+    st.error(
+        "Nie można przewidywać, ponieważ występują nieprawidłowe wartości. Proszę poprawić następujące pola:"
+    )
+    for error in errors:
+        st.markdown(
+            f"<div style='background-color: #FFCCCC; padding: 10px; border-radius: 10px; margin-bottom: 10px; color: red;'>"
+            f"{error}"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+
+def predict_heart_attack_risk(data):
+    """Predicts the heart attack risk based on input data."""
+    try:
+        survival = model.predict(data)
+        s_confidence = model.predict_proba(data)
+        st.subheader("Wyniki przewidywania")
+        if survival[0] == 0:
+            components.html(NEGATIVE_ANIMATION, height=150)
+            st.markdown(
+                f"<div style='background-color: #990033; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
+                f"⚠️ Zwiększone ryzyko zawału serca! Pewność predykcji: {s_confidence[0][0] * 100:.2f} %"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+            st.warning("Prosimy o pilny kontakt z lekarzem.")
+        else:
+            components.html(POSITIVE_ANIMATION, height=150)
+            st.markdown(
+                f"<div style='background-color: #006633; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
+                f"✅ Brak zwiększonego ryzyka zawału serca. Pewność predykcji: {s_confidence[0][1] * 100:.2f} %"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+            st.info("Wszystko w porządku, kontynuuj zdrowy styl życia.")
+    except Exception as predict_exception:
+        st.error(f"Błąd podczas przewidywania: {predict_exception}")
+
+
+def main():
+    """Main function to run the Streamlit app."""
+    st.image("necessary_files/Image/heartattac.jpg")
     st.title("Przewidywanie ryzyka zawału serca")
     st.write("Wprowadź swoje dane, aby uzyskać przewidywanie ryzyka zawału serca.")
 
@@ -100,134 +165,105 @@ def main():
             format_func=lambda x: [
                 "typowa dławica piersiowa",
                 "nietypowa dławica piersiowa",
-                "ból nie będący dławicą piersiową",
-                "brak objawów",
+                "ból niemający związku z sercem",
+                "bezobjawowy",
             ][x - 1],
         )
 
-        st.header("Informacje medyczne")
         trtbps = st.number_input(
-            "Ciśnienie krwi podczas spoczynku (mm Hg)",
+            "Spoczynkowe ciśnienie krwi (mm Hg)",
+            value=st.session_state.form_data["trtbps"],
             min_value=0,
             max_value=300,
-            value=st.session_state.form_data["trtbps"],
         )
         chol = st.number_input(
             "Cholesterol (mg/dl)",
+            value=st.session_state.form_data["chol"],
             min_value=0,
             max_value=600,
-            value=st.session_state.form_data["chol"],
         )
         thalachh = st.number_input(
             "Maksymalne tętno",
+            value=st.session_state.form_data["thalachh"],
             min_value=0,
             max_value=250,
-            value=st.session_state.form_data["thalachh"],
         )
         oldpeak = st.number_input(
             "Depresja ST wywołana przez ćwiczenie w stosunku do odpoczynku",
+            value=st.session_state.form_data["oldpeak"],
             min_value=0.0,
             max_value=10.0,
-            value=st.session_state.form_data["oldpeak"],
             step=0.1,
         )
-
-        st.header("Dodatkowe informacje")
         fbs = st.radio(
-            "Poziom cukru we krwi na czczo",
+            "Poziom cukru na czczo powyżej 120 mg/dl",
             list(fbs_s.keys()),
             index=st.session_state.form_data["fbs"],
             format_func=lambda x: fbs_s[x],
         )
+
         restecg = st.selectbox(
-            "Wyniki spoczynkowego elektrokardiogramu (EKG)",
+            "Wyniki elektrokardiograficzne spoczynkowe",
             [0, 1, 2],
             index=st.session_state.form_data["restecg"],
             format_func=lambda x: [
-                "normalny",
-                "obecność nieprawidłowości fali ST-T",
-                "prawdopodobne lub pewne przerost lewej komory według kryteriów Estesa",
+                "0: normalne",
+                "1: mające ST-T (fale spłaszczenia lub odwrócenia) nieprawidłowości",
+                "2: przerost lewej komory z prawdopodobnie lub na pewno obecnym bólem",
             ][x],
         )
+
         exng = st.radio(
-            "Czy występuje angina wysiłkowa?",
+            "Ból dławicowy wywołany wysiłkiem",
             list(exng_s.keys()),
             index=st.session_state.form_data["exng"],
             format_func=lambda x: exng_s[x],
         )
+
         caa = st.slider(
-            "Liczba głównych naczyń zabarwionych fluoroskopowo",
+            "Liczba głównych naczyń krwionośnych (0-3)",
             value=st.session_state.form_data["caa"],
             min_value=0,
-            max_value=4,
+            max_value=3,
         )
         thall = st.selectbox(
-            "Wynik testu wysiłkowego z Thall",
-            [0, 1, 2, 3],
-            index=st.session_state.form_data["thall"],
-            format_func=lambda x: ["brak", "stała wada", "wada odwracalna", "nieznany"][
-                x
-            ],
-        )
-        slp = st.selectbox(
-            "Nachylenie segmentu ST na EKG",
+            "Wynik testu Thallium",
             [0, 1, 2],
-            index=st.session_state.form_data["slp"],
-            format_func=lambda x: ["ujemne", "płaskie", "dodatnie"][x],
+            index=st.session_state.form_data["thall"],
+            format_func=lambda x: ["0: brak", "1: normalny", "2: wada stała", "3: wada odwracalna"][x],
+        )
+        slp = st.slider(
+            "Szczytowy odcinek ST",
+            value=st.session_state.form_data["slp"],
+            min_value=0,
+            max_value=2,
         )
 
-        submitted = st.form_submit_button("Przewiduj")
-        reset = st.form_submit_button("Resetuj")
+        submitted = st.form_submit_button("Przewiduj ryzyko")
 
-        if reset:
-            st.session_state.form_data = default_values.copy()
-            st.experimental_rerun()
+    if submitted:
+        st.session_state.form_data = {
+            "age": age,
+            "sex": sex,
+            "cp": cp,
+            "trtbps": trtbps,
+            "chol": chol,
+            "thalachh": thalachh,
+            "oldpeak": oldpeak,
+            "fbs": fbs,
+            "restecg": restecg,
+            "exng": exng,
+            "caa": caa,
+            "thall": thall,
+            "slp": slp,
+        }
 
-        if submitted:
-            # Walidacja
-            errors = []
-            if not (0 <= trtbps <= 300):
-                errors.append(
-                    "! Ciśnienie krwi podczas spoczynku musi być w zakresie od 0 do 300 mm Hg."
-                )
-            if not (0 <= chol <= 600):
-                errors.append("! Cholesterol musi być w zakresie od 0 do 600 mg/dl.")
-            if not (0 <= thalachh <= 250):
-                errors.append("! Maksymalne tętno musi być w zakresie od 0 do 250.")
-            if not (0.0 <= oldpeak <= 10.0):
-                errors.append(
-                    "! Depresja ST wywołana przez ćwiczenie w stosunku do odpoczynku musi być w zakresie od 0.0 do 10.0."
-                )
-
-            if errors:
-                st.error(
-                    "Nie można przewidywać, ponieważ występują nieprawidłowe wartości. Proszę poprawić następujące pola:"
-                )
-                for error in errors:
-                    st.markdown(
-                        f"<div style='background-color: #FFCCCC; padding: 10px; border-radius: 10px; margin-bottom: 10px; color: red;'>"
-                        f"{error}"
-                        f"</div>",
-                        unsafe_allow_html=True,
-                    )
-            else:
-                st.session_state.form_data = {
-                    "age": age,
-                    "sex": sex,
-                    "cp": cp,
-                    "trtbps": trtbps,
-                    "chol": chol,
-                    "thalachh": thalachh,
-                    "oldpeak": oldpeak,
-                    "fbs": fbs,
-                    "restecg": restecg,
-                    "exng": exng,
-                    "caa": caa,
-                    "thall": thall,
-                    "slp": slp,
-                }
-
-                data = [
+        errors = validate_inputs(trtbps, chol, thalachh, oldpeak)
+        if errors:
+            display_errors(errors)
+        else:
+            data = [
+                [
                     age,
                     sex,
                     cp,
@@ -242,32 +278,8 @@ def main():
                     caa,
                     thall,
                 ]
-                data = [data]
-
-                try:
-                    survival = model.predict(data)
-                    s_confidence = model.predict_proba(data)
-                    st.subheader("Wyniki przewidywania")
-                    if survival[0] == 0:
-                        components.html(negative_animation, height=150)
-                        st.markdown(
-                            f"<div style='background-color: #990033; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
-                            f"⚠️ Zwiększone ryzyko zawału serca! Pewność predykcji: {s_confidence[0][0] * 100:.2f} %"
-                            f"</div>",
-                            unsafe_allow_html=True,
-                        )
-                        st.warning("Prosimy o pilny kontakt z lekarzem.")
-                    else:
-                        components.html(positive_animation, height=150)
-                        st.markdown(
-                            f"<div style='background-color: #006633; padding: 10px; border-radius: 10px; margin-bottom: 10px;'>"
-                            f"✅ Brak zwiększonego ryzyka zawału serca. Pewność predykcji: {s_confidence[0][1] * 100:.2f} %"
-                            f"</div>",
-                            unsafe_allow_html=True,
-                        )
-                        st.info("Wszystko w porządku, kontynuuj zdrowy styl życia.")
-                except Exception as e:
-                    st.error(f"Błąd podczas przewidywania: {e}")
+            ]
+            predict_heart_attack_risk(data)
 
 
 if __name__ == "__main__":
