@@ -8,7 +8,7 @@ from datetime import datetime
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Initialize start time
+# Inicjalizacja czasu początkowego
 startTime = datetime.now()
 
 # Ładowanie modelu
