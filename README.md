@@ -19,20 +19,24 @@ Aby utworzyć obraz Dockera, uruchom poniższe polecenie w katalogu zawierający
 ```sh
 docker build -t streamlitapp .
 
-### 2. Tworzenie kontenera z obrazem
+## 2. **Tworzenie kontenera z obrazem**
+
+Aby uruchomić aplikację Streamlit w kontenerze Docker, użyj poniższego polecenia:
+
 ```sh
 docker run -p 8000:8000 streamlitapp
-### 3. Uruchamianie aplikacji
+
+## 3. **Uruchamianie aplikacji**
 
 Otwórz przeglądarkę internetową i wejdź na adres:
 
 ```sh
 http://localhost:8000/
 
-**Ciesz się działającą aplikacją !**
+## **Ciesz się działającą aplikacją !**
 
-### 4. Szczegóły implementacji
-**Struktura katalogów**
+## 4. **Szczegóły implementacji**
+## **Struktura katalogów**
 
 Upewnij się, że masz następującą strukturę katalogów:
 
@@ -45,7 +49,7 @@ Upewnij się, że masz następującą strukturę katalogów:
     └── Image
         └── heartattac.jpg
 
-###Plik app.py
+## **Plik app.py**
 
 Główny plik aplikacji app.py zawiera kod aplikacji Streamlit do przewidywania ryzyka zawału serca. Upewnij się, że jest on kompletny i poprawny.
 Przydatne komendy:
@@ -70,17 +74,18 @@ Aby usunąć kontener:
 	sh
 	docker rm [container_id]
 
-### 5. Uwagi
+## **5. Uwagi**
 
 Upewnij się, że plik modelu heart_attack.pkl i obraz heartattac.jpg znajdują się w odpowiednich katalogach przed uruchomieniem aplikacji. Jeśli napotkasz problemy z uruchomieniem, sprawdź logi kontenera za pomocą:
 
 	docker logs [container_id]
 
-### 6. Autorzy
+## **6. Autorzy**
 
 Projekt stworzony przez:
-1. Adam Wolańczyk
-2. Cezary Sieczkowski
-3. Karol Tusiński
+1. Cezary Sieczkowski
+2. Karol Tusiński
+3. Adam Wolańczyk
+4. Tomasz Fiedoruk
 
 Zapraszamy do kontaktu w przypadku pytań lub sugestii.

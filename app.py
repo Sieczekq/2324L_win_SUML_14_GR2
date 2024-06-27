@@ -1,6 +1,6 @@
 """
-This Streamlit app predicts the risk of a heart attack based on user input.
-It uses a pre-trained machine learning model to provide the predictions.
+Ta aplikacja Streamlit przewiduje ryzyko zawału serca na podstawie danych wprowadzonych przez użytkownika.
+Używa wstępnie wytrenowanego modelu uczenia maszynowego do dostarczania prognoz.
 """
 import pickle
 from datetime import datetime
@@ -11,7 +11,7 @@ import streamlit.components.v1 as components
 # Initialize start time
 startTime = datetime.now()
 
-# Load the pre-trained model
+# Ładowanie modelu
 try:
     with open("ml_models/heart_attack.pkl", "rb") as file:
         model = pickle.load(file)
@@ -19,10 +19,12 @@ try:
 except Exception as load_exception:
     st.error(f"Błąd podczas wczytywania modelu heart_attack.pkl: {load_exception}")
 
+# Mapowanie wartości dla interfejsu użytkownika
 sex_d = {0: "Kobieta", 1: "Mężczyzna"}
 exng_s = {0: "Nie", 1: "Tak"}
 fbs_s = {0: "Cukier poniżej 120ng/ml", 1: "Cukier powyżej 120ng/ml"}
 
+# Animacje wyników
 POSITIVE_ANIMATION = """
 <div style="display: flex; align-items: center; justify-content: center; padding: 20px; position: relative;">
   <div style="animation: moveUp 2s; width: 120px; height: 120px; border: 5px solid #006633; border-radius: 50%; position: absolute; top: 0; background-color: #E0FFE0;">
@@ -57,7 +59,7 @@ NEGATIVE_ANIMATION = """
 </style>
 """
 
-
+# Funkcje walidacji i wyświtlanie błędów
 def validate_inputs(trtbps, chol, thalachh, oldpeak):
     """Validates the input values for prediction."""
     errors = []
@@ -89,7 +91,7 @@ def display_errors(errors):
             unsafe_allow_html=True,
         )
 
-
+# Funkcja przewidywania
 def predict_heart_attack_risk(data):
     """Predicts the heart attack risk based on input data."""
     try:
@@ -117,14 +119,14 @@ def predict_heart_attack_risk(data):
     except Exception as predict_exception:
         st.error(f"Błąd podczas przewidywania: {predict_exception}")
 
-
+# Główna funkcja aplikacji
 def main():
     """Main function to run the Streamlit app."""
     st.image("necessary_files/Image/heartattac.jpg")
     st.title("Przewidywanie ryzyka zawału serca")
     st.write("Wprowadź swoje dane, aby uzyskać przewidywanie ryzyka zawału serca.")
 
-    # Define default values for the form fields
+    # Definiowanie wartości domyślnych
     default_values = {
         "age": 60,
         "sex": 0,
@@ -141,10 +143,11 @@ def main():
         "slp": 0,
     }
 
-    # Initialize session state if it doesn't exist
+    # Inicjalizacja stanu sesji
     if "form_data" not in st.session_state:
         st.session_state.form_data = default_values.copy()
 
+    # Formularz wejściowy
     with st.form("heart_attack_form"):
         age = st.slider(
             "Wiek", value=st.session_state.form_data["age"], min_value=1, max_value=120
